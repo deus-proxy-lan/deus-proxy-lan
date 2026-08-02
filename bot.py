@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 import json
 import os
 
-# 📌 CONFIGURACIÓN DEL BOT
+# 📌 CONFIGURACIÓN DEL BOT - YA PUESTO EL TOKEN
 TOKEN_BOT = "8750716094:AAF29inoucagFHOHobkX1vMknVeL_bIL4o8"
 CLAVE_VIP = "NKGVIPDEUS"
 ARCHIVO_IPS = "ips_autorizadas.json"
