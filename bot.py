@@ -4,7 +4,7 @@ import json
 import os
 
 # 📌 CONFIGURACIÓN DEL BOT
-TOKEN_BOT = "8786825072:AAFHMSDZ_i8Mdpm5d1MYbBKDZUvULZoQfyQ"
+TOKEN_BOT = "8750716094:AAF29inoucagFHOHobkX1vMknVeL_bIL4o8"
 CLAVE_VIP = "NKGVIPDEUS"
 ARCHIVO_IPS = "ips_autorizadas.json"
 ARCHIVO_CLAVES = "claves_vip.json"
