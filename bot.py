@@ -12,7 +12,7 @@ ARCHIVO_CLAVES = "claves_vip.json"
 # Hora dominicana = UTC-4
 HORA_DOM = timezone(timedelta(hours=-4))
 
-# Fecha de vencimiento: ejemplo → 16 de octubre de 2026 a las 17:00 hora dominicana
+# Fecha de vencimiento: 16 de octubre de 2026 a las 17:00 hora dominicana
 FECHA_FIN = datetime(2026, 10, 16, 17, 0, 0, tzinfo=HORA_DOM)
 
 bot = telebot.TeleBot(TOKEN_BOT)
@@ -40,64 +40,55 @@ def guardar_datos(ips, claves):
 def bienvenida(mensaje):
     texto = """👋 Bienvenido a **DEUS MOODZ VIP** 🇩🇴
 
-🔑 Escribe tu clave VIP para activar:
-`NKGVIPDEUS`
+🔑 Usa este comando para activar:
+`/activar NKGVIPDEUS TU_IP`
 
 📅 Esta clave vence el:
 **16 de octubre de 2026 a las 5:00 PM**
 *Hora Oficial Dominicana (UTC-4)*
 
-Escribe tu clave para continuar."""
+Ejemplo: `/activar NKGVIPDEUS 64.32.106.75`"""
     bot.reply_to(mensaje, texto, parse_mode="Markdown")
 
-@bot.message_handler(func=lambda m: True)
-def verificar_clave(mensaje):
-    clave = mensaje.text.strip().upper()
+@bot.message_handler(commands=['activar'])
+def activar_clave(mensaje):
+    partes = mensaje.text.strip().split()
+    if len(partes) < 3:
+        bot.reply_to(mensaje, "❌ Formato incorrecto.\nUsa: `/activar NKGVIPDEUS TU_IP`", parse_mode="Markdown")
+        return
+    clave = partes[1].strip().upper()
+    ip = partes[2].strip()
     ips, claves = cargar_datos()
 
     if clave == CLAVE_VIP:
         ahora = datetime.now(HORA_DOM)
         if ahora < FECHA_FIN:
             claves[clave] = FECHA_FIN.isoformat()
+            ips.add(ip)
             guardar_datos(ips, claves)
             tiempo_restante = FECHA_FIN - ahora
             dias = tiempo_restante.days
             horas = tiempo_restante.seconds // 3600
             minutos = (tiempo_restante.seconds % 3600) // 60
 
-            respuesta = f"""✅ **CLAVE CORRECTA** ✅
+            respuesta = f"""✅ **ACTIVADO CON ÉXITO** ✅
+
+🔑 Clave: `{clave}`
+🌐 Tu IP autorizada: `{ip}`
 
 📅 Vence el: **16 de octubre de 2026 a las 5:00 PM**
 ⏱️ Tiempo restante: **{dias} días, {horas} horas y {minutos} minutos**
 
-📝 Envía ahora tu IP para autorizarla:
-Ejemplo: `64.233.12.45`"""
+📝 Datos para tu proxy:
+🔹 Servidor: `deus-proxy-lan-1.onrender.com`
+🔹 Puerto: `8080`
+🔹 Usuario: `ARIFI`
+🔹 Clave: `ARIFI`"""
             bot.reply_to(mensaje, respuesta, parse_mode="Markdown")
-
-            # Pasamos a esperar la IP
-            bot.register_next_step_handler(mensaje, autorizar_ip)
         else:
-            bot.reply_to(mensaje, "❌ **CLAVE VENCIDA**\nPide una nueva clave a tu administrador.")
+            bot.reply_to(mensaje, "❌ **CLAVE VENCIDA**\nPide una nueva clave al administrador.")
     else:
-        bot.reply_to(mensaje, "❌ **CLAVE INCORRECTA**\nRevisa que la hayas escrito bien.")
-
-def autorizar_ip(mensaje):
-    ip = mensaje.text.strip()
-    ips, claves = cargar_datos()
-    ips.add(ip)
-    guardar_datos(ips, claves)
-
-    respuesta = f"""✅ **IP AUTORIZADA** ✅
-
-Tu IP: `{ip}`
-Ya puedes usar tu proxy:
-🔹 **Servidor:** Tu dirección de Render
-🔹 **Puerto:** 8080
-🔹 **Usuario:** ARIFI
-🔹 **Clave:** ARIFI
-
-📌 Recuerda: Desactiva el proxy antes de entrar al juego."""
-    bot.reply_to(mensaje, respuesta, parse_mode="Markdown")
+        bot.reply_to(mensaje, "❌ **CLAVE INVÁLIDA**\nRevisa que la escribas bien: `NKGVIPDEUS`")
 
 print("🤖 BOT INICIADO CORRECTAMENTE")
 bot.infinity_polling()
