@@ -167,4 +167,19 @@ print("🤖 BOT INICIADO — Activos: 0 de 1000 — Vence:", FECHA_FIN.strftime(
 import time
 time.sleep(2)
 print("✅ BOT LISTO — ESPERANDO COMANDOS...")
+# ✅ ESTO HACE QUE RENDER DETECTE QUE ESTÁ VIVO
+from flask import Flask
+app = Flask(__name__)
+
+@app.route('/')
+def estoy_vivo():
+    return "✅ DEUS MOODZ — BOT VIVO"
+
+def arrancar_web():
+    app.run(host="0.0.0.0", port=8080)
+
+import threading
+threading.Thread(target=arrancar_web, daemon=True).start()
+
+print("✅ BOT VIVO Y LISTO")
 bot.infinity_polling()
