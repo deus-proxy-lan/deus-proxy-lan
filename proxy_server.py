@@ -6,7 +6,7 @@ ARCHIVO_IPS = "ips_autorizadas.json"
 IPS_PERMITIDAS = set()
 
 # 🎯 POSICIÓN DE LA MIRA — 0.75 = CUELLO / BASE DE CABEZA
-ALTURA_MIRA = 0.85
+ALTURA_MIRA = 0.99
 
 def cargar_ips():
     global IPS_PERMITIDAS
