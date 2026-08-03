@@ -7,7 +7,7 @@ import os
 TOKEN_BOT = "8750716094:AAF29inoucagFHOHobkX1vMknVeL_bIL4o8"
 CLAVE_VIP = "NKGVIPDEUS"
 MAX_TOTAL = 1000       # ⛔ LÍMITE MÁXIMO
-MAX_POR_CLAVE = 1       # ⛔ UNA SOLA IP POR PERSONA
+MAX_POR_CLAVE = 1000       # ⛔ UNA SOLA IP POR PERSONA
 
 # ⏳ HORA REP. DOMINICANA
 HORA_DOM = timezone(timedelta(hours=-4))
@@ -179,4 +179,13 @@ import threading
 threading.Thread(target=arrancar_web, daemon=True).start()
 
 print("✅ BOT VIVO Y LISTO")
+@bot.message_handler(commands=['deus_contar'])
+def contar_activos(m):
+    por_clave, _ = cargar()
+    total = contar_total(por_clave)
+    bot.reply_to(m, f"""📊 **TOTAL DE IPs ACTIVAS:** `{total}` de `{MAX_TOTAL}`
+
+🔑 Claves en uso: `{len(por_clave)}`
+✅ Todo funcionando correctamente""", parse_mode="Markdown")
+bot.delete_webhook()
 bot.infinity_polling()
