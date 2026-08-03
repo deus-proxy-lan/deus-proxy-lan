@@ -164,4 +164,7 @@ def borrar_todo(m):
 🔓 Para desbloquear: cambia `bloqueado=True` a `False` en el código y sube los cambios.""", parse_mode="Markdown")
 
 print("🤖 BOT INICIADO — Activos: 0 de 1000 — Vence:", FECHA_FIN.strftime('%d/%m %H:%M'))
+import time
+time.sleep(2)
+print("✅ BOT LISTO — ESPERANDO COMANDOS...")
 bot.infinity_polling()
