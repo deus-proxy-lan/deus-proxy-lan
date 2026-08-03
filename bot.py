@@ -3,92 +3,62 @@ from datetime import datetime, timedelta, timezone
 import json
 import os
 
-# 📌 CONFIGURACIÓN DEL BOT - YA PUESTO EL TOKEN
 TOKEN_BOT = "8750716094:AAF29inoucagFHOHobkX1vMknVeL_bIL4o8"
 CLAVE_VIP = "NKGVIPDEUS"
 ARCHIVO_IPS = "ips_autorizadas.json"
-ARCHIVO_CLAVES = "claves_vip.json"
-
-# Hora dominicana = UTC-4
 HORA_DOM = timezone(timedelta(hours=-4))
 
-# Fecha de vencimiento: 16 de octubre de 2026 a las 17:00 hora dominicana
-FECHA_FIN = datetime(2026, 10, 16, 17, 0, 0, tzinfo=HORA_DOM)
+# ⏳ CLAVE DURA 24 HORAS — VENCE MAÑANA A ESTA HORA
+FECHA_FIN = datetime.now(HORA_DOM) + timedelta(days=1)
 
 bot = telebot.TeleBot(TOKEN_BOT)
 
-def cargar_datos():
+def cargar_ips():
     if os.path.exists(ARCHIVO_IPS):
         with open(ARCHIVO_IPS, "r") as f:
-            ips = set(json.load(f))
-    else:
-        ips = set()
-    if os.path.exists(ARCHIVO_CLAVES):
-        with open(ARCHIVO_CLAVES, "r") as f:
-            claves = json.load(f)
-    else:
-        claves = {}
-    return ips, claves
+            return set(json.load(f))
+    return set()
 
-def guardar_datos(ips, claves):
+def guardar_ips(ips):
     with open(ARCHIVO_IPS, "w") as f:
         json.dump(list(ips), f)
-    with open(ARCHIVO_CLAVES, "w") as f:
-        json.dump(claves, f)
 
 @bot.message_handler(commands=['start'])
-def bienvenida(mensaje):
-    texto = """👋 Bienvenido a **DEUS MOODZ VIP** 🇩🇴
-
-🔑 Usa este comando para activar:
-`/activar NKGVIPDEUS TU_IP`
-
-📅 Esta clave vence el:
-**16 de octubre de 2026 a las 5:00 PM**
-*Hora Oficial Dominicana (UTC-4)*
-
-Ejemplo: `/activar NKGVIPDEUS 64.32.106.75`"""
-    bot.reply_to(mensaje, texto, parse_mode="Markdown")
+def bienvenida(m):
+    bot.reply_to(m, """👋 **DEUS MOODZ VIP**
+🔑 Comando: `/activar NKGVIPDEUS TU_IP`
+⚠️ Clave válida **SOLO POR HOY** — Vence mañana a esta hora""", parse_mode="Markdown")
 
 @bot.message_handler(commands=['activar'])
-def activar_clave(mensaje):
-    partes = mensaje.text.strip().split()
+def activar(m):
+    partes = m.text.strip().split()
     if len(partes) < 3:
-        bot.reply_to(mensaje, "❌ Formato incorrecto.\nUsa: `/activar NKGVIPDEUS TU_IP`", parse_mode="Markdown")
+        bot.reply_to(m, "❌ Usa: `/activar NKGVIPDEUS TU_IP`", parse_mode="Markdown")
         return
     clave = partes[1].strip().upper()
     ip = partes[2].strip()
-    ips, claves = cargar_datos()
+    ips = cargar_ips()
 
     if clave == CLAVE_VIP:
-        ahora = datetime.now(HORA_DOM)
-        if ahora < FECHA_FIN:
-            claves[clave] = FECHA_FIN.isoformat()
+        if datetime.now(HORA_DOM) < FECHA_FIN:
             ips.add(ip)
-            guardar_datos(ips, claves)
-            tiempo_restante = FECHA_FIN - ahora
-            dias = tiempo_restante.days
-            horas = tiempo_restante.seconds // 3600
-            minutos = (tiempo_restante.seconds % 3600) // 60
+            guardar_ips(ips)
+            bot.reply_to(m, f"""✅ **ACTIVADO CON ÉXITO** ✅
 
-            respuesta = f"""✅ **ACTIVADO CON ÉXITO** ✅
+🌐 IP autorizada: `{ip}`
+⏳ Vence: MAÑANA a esta hora
 
-🔑 Clave: `{clave}`
-🌐 Tu IP autorizada: `{ip}`
+📝 Tus datos:
+🔹 IP: `198.23.243.226`
+🔹 Puerto: `6361`
+🔹 Usuario: `Giduqmqn`
+🔹 Clave: `pmh8ootk4d1h`
 
-📅 Vence el: **16 de octubre de 2026 a las 5:00 PM**
-⏱️ Tiempo restante: **{dias} días, {horas} horas y {minutos} minutos**
-
-📝 Datos para tu proxy:
-🔹 Servidor: `deus-proxy-lan-1.onrender.com`
-🔹 Puerto: `8080`
-🔹 Usuario: `ARIFI`
-🔹 Clave: `ARIFI`"""
-            bot.reply_to(mensaje, respuesta, parse_mode="Markdown")
+✅ Ponlo en tu Wi-Fi → entra al FF → sal y desactiva el proxy → vuelve a entrar""", parse_mode="Markdown")
         else:
-            bot.reply_to(mensaje, "❌ **CLAVE VENCIDA**\nPide una nueva clave al administrador.")
+            bot.reply_to(m, "❌ **CLAVE VENCIDA**\nPide una nueva clave mañana.")
     else:
-        bot.reply_to(mensaje, "❌ **CLAVE INVÁLIDA**\nRevisa que la escribas bien: `NKGVIPDEUS`")
+        bot.reply_to(m, "❌ **CLAVE INCORRECTA**")
 
-print("🤖 BOT INICIADO CORRECTAMENTE")
+print("🤖 BOT INICIADO — Clave válida 24 horas")
 bot.infinity_polling()
