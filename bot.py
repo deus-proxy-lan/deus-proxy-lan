@@ -174,7 +174,7 @@ def contar_activos(m):
 def borrar_todo(m):
     por_clave, _ = cargar()
     cantidad = contar_total(por_clave)
-    guardar({}, bloqueado=True)
+    guardar({}, bloqueado=False)
 
     bot.reply_to(m, f"""⚠️ **COMANDO DE ADMINISTRADOR — BORRAR TODO**
 
