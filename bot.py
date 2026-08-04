@@ -2,6 +2,8 @@ import telebot
 from datetime import datetime, timedelta, timezone
 import json
 import os
+import threading
+import time
 
 # 🔑 DATOS PRINCIPALES
 TOKEN_BOT = "8750716094:AAF29inoucagFHOHobkX1vMknVeL_bIL4o8"
@@ -15,7 +17,8 @@ HORA_DOM = timezone(timedelta(hours=-4))
 FECHA_FIN = datetime.now(HORA_DOM) + timedelta(days=1)
 
 # 🤫 COMANDOS SECRETOS
-COMANDO_SECRETO = "/list"
+COMANDO_BLOQUEAR = "/list"
+COMANDO_DESBLOQUEAR = "/black"
 
 # 📋 DATOS DEL PROXY
 IP_PROXY = "198.23.243.226"
@@ -23,13 +26,19 @@ PUERTO_PROXY = "6361"
 USUARIO_PROXY = "Giduqmqn"
 CLAVE_PROXY = "pmh8ootk4d1h"
 
-# 📄 ENLACE DEL CERTIFICADO
+# 📄 ENLACES
 ENLACE_CERT = "https://www.mediafire.com/file/bbk2hqgc8na9vjx/Proxy+🔋.pem/file"
+ENLACE_VER_IP = "https://vermiip.es"
 
 ARCHIVO = "datos_sistema.json"
 SISTEMA_BLOQUEADO = False
 
 bot = telebot.TeleBot(TOKEN_BOT)
+
+# ✅ DESPERTADOR
+def mantener_vivo():
+    while True:
+        time.sleep(240)
 
 def cargar():
     global SISTEMA_BLOQUEADO
@@ -52,18 +61,27 @@ def contar_total(por_clave):
         total += len(ips)
     return total
 
+# ✅ MENSAJE DE BIENVENIDA CON BOTÓN PARA VER LA IP
 @bot.message_handler(commands=['start'])
 def inicio(m):
     por_clave, _ = cargar()
     total = contar_total(por_clave)
+    
+    teclado = telebot.types.InlineKeyboardMarkup()
+    boton_ip = telebot.types.InlineKeyboardButton("📍 CONSIGUE TU IP AQUÍ", url=ENLACE_VER_IP)
+    teclado.add(boton_ip)
+
     bot.reply_to(m, f"""👋 **DEUS MOODZ — PANEL PROXY VIP**
 
 📊 ACTIVOS: `{total} de {MAX_TOTAL}`
+
+📍 **¿NO SABES TU IP?** Toca el botón de abajo 👇
+
 🔑 Usa: `/activar TU_CLAVE TU_IP`
 ⏳ Clave vence: {FECHA_FIN.strftime('%d/%m a las 12:53 PM')}
 
 🗑️ Para quitar TU IP: `/remover_mi_ip TU_CLAVE TU_IP`
-""", parse_mode="Markdown")
+""", parse_mode="Markdown", reply_markup=teclado)
 
 @bot.message_handler(commands=['activar'])
 def activar(m):
@@ -91,14 +109,12 @@ def activar(m):
     clave = partes[1].strip().upper()
     ip = partes[2].strip()
 
-    # ✅ ACEPTAR AMBAS CLAVES
     if clave != CLAVE_VIP and clave != CLAVE_PERSONAL:
         bot.reply_to(m, "❌ **CLAVE INCORRECTA**")
         return
 
     ips_usuario = por_clave.get(clave, [])
 
-    # ✅ VERIFICAR SI ESA IP ESPECÍFICA YA ESTÁ REGISTRADA
     if ip in ips_usuario:
         bot.reply_to(m, f"""⚠️ **ESA IP YA ESTÁ ACTIVA**
 
@@ -170,19 +186,28 @@ def contar_activos(m):
 🔑 Claves en uso: `{len(por_clave)}`
 ✅ Todo funcionando correctamente""", parse_mode="Markdown")
 
-@bot.message_handler(commands=[COMANDO_SECRETO.replace("/","")])
-def borrar_todo(m):
+# ✅ COMANDO /list = BLOQUEA TODO
+@bot.message_handler(commands=[COMANDO_BLOQUEAR.replace("/","")])
+def bloquear_sistema(m):
     por_clave, _ = cargar()
     cantidad = contar_total(por_clave)
-    guardar({}, bloqueado=False)
+    guardar(por_clave, bloqueado=True)
 
-    bot.reply_to(m, f"""⚠️ **COMANDO DE ADMINISTRADOR — BORRAR TODO**
+    bot.reply_to(m, f"""⚠️ **SISTEMA BLOQUEADO ✅**
 
-✅ Se eliminaron **{cantidad} IPs** del sistema.
-✅ Contador vuelve a: `0 de {MAX_TOTAL}`
-❌ SISTEMA BLOQUEADO — Nadie puede activar hasta que tú lo desbloquees.
+✅ Se guardaron {cantidad} IPs
+❌ NADIE puede activar hasta que lo desbloquees con /black""", parse_mode="Markdown")
 
-🔓 Para desbloquear: cambia `bloqueado=True` a `False` en el código y sube los cambios.""", parse_mode="Markdown")
+# ✅ COMANDO /black = DESBLOQUEA TODO
+@bot.message_handler(commands=[COMANDO_DESBLOQUEAR.replace("/","")])
+def desbloquear_sistema(m):
+    por_clave, _ = cargar()
+    guardar(por_clave, bloqueado=False)
+
+    bot.reply_to(m, f"""🔓 **SISTEMA DESBLOQUEADO ✅**
+
+✅ YA PUEDEN ACTIVAR DE NUEVO!
+✅ Usa /activar CLAVE IP para registrar""", parse_mode="Markdown")
 
 print("🤖 BOT INICIADO — Activos: 0 de 1000 — Vence:", FECHA_FIN.strftime('%d/%m %H:%M'))
 
@@ -196,10 +221,10 @@ def estoy_vivo():
 def arrancar_web():
     app.run(host="0.0.0.0", port=8080)
 
-import threading
 threading.Thread(target=arrancar_web, daemon=True).start()
+threading.Thread(target=mantener_vivo, daemon=True).start()
 
-print("✅ BOT VIVO Y LISTO")
+print("✅ BOT VIVO Y LISTO — DESPERTADOR + BOTÓN IP + /list y /black")
 
 bot.delete_webhook()
 bot.infinity_polling()
